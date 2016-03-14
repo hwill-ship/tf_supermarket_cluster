@@ -1,0 +1,5 @@
+access_key = "Your AWS Access Key"
+secret_key = "Your AWS Secret Key"
+region = "us-west-2"
+instance_type = "t2.medium"
+ami = "ami-9abea4fb"

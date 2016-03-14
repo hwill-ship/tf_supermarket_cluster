@@ -10,5 +10,5 @@ resource "aws_instance" "supermarket-server" {
   tags {
     Name = "supermarket-server"
   }
-  security_groups = ["${var.security_groups}"]
+  security_groups = ["${split(",", var.security_groups)}"]
 }

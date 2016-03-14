@@ -10,4 +10,5 @@ resource "aws_instance" "chef-server" {
   tags {
     Name = "chef-server"
   }
+  security_groups = ["${split(",", var.security_groups)}"]
 }

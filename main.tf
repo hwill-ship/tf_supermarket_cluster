@@ -18,7 +18,7 @@ module "supermarket-server" {
   region = "${var.region}"
   instance_type = "${var.instance_type}"
   ami = "${var.ami}"
-  security_groups = "${module.security-groups.allow-ssh-name}"
+  security_groups = "${module.security-groups.allow-ssh-name},${module.security-groups.allow-443-name}"
 }
 
 module "chef-server" {
@@ -28,4 +28,5 @@ module "chef-server" {
   region = "${var.region}"
   instance_type = "${var.instance_type}"
   ami = "${var.ami}"
+  security_groups = "${module.security-groups.allow-ssh-name},${module.security-groups.allow-443-name}"
 }

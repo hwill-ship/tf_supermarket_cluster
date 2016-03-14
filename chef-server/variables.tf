@@ -5,3 +5,4 @@ variable "region" {
 }
 variable "instance_type" {}
 variable "ami" {}
+variable "security_groups" {}

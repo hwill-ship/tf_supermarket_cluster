@@ -11,4 +11,5 @@ resource "aws_instance" "supermarket-server" {
     Name = "supermarket-server"
   }
   security_groups = ["${split(",", var.security_groups)}"]
+  key_name = "${var.key_name}"
 }

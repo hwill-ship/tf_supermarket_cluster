@@ -19,6 +19,7 @@ module "supermarket-server" {
   instance_type = "${var.instance_type}"
   ami = "${var.ami}"
   security_groups = "${module.security-groups.allow-ssh-name},${module.security-groups.allow-443-name}"
+  key_name = "${var.key_name}"
 }
 
 module "chef-server" {
@@ -29,4 +30,6 @@ module "chef-server" {
   instance_type = "${var.instance_type}"
   ami = "${var.ami}"
   security_groups = "${module.security-groups.allow-ssh-name},${module.security-groups.allow-443-name}"
+  key_name = "${var.key_name}"
+  private_ssh_key_path = "${var.private_ssh_key_path}"
 }

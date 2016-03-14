@@ -4,11 +4,11 @@ provider "aws" {
   region = "${var.region}"
 }
 
-resource "aws_instance" "supermarket-server" {
+resource "aws_instance" "chef-server" {
   ami = "${var.ami}"
   instance_type = "${var.instance_type}"
   tags {
-    Name = "supermarket-server"
+    Name = "chef-server"
   }
   security_groups = ["${var.security_groups}"]
 }

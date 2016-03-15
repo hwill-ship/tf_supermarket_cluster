@@ -14,3 +14,4 @@ variable "chef-server-user-email" {}
 variable "chef-server-user-password" {}
 variable "chef-server-org-name" {}
 variable "chef-server-org-full-name" {}
+variable "supermarket-redirect-uri" {}

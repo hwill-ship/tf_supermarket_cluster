@@ -38,4 +38,5 @@ module "chef-server" {
   chef-server-user-password = "${var.chef-server-user-password}"
   chef-server-org-name = "${var.chef-server-org-name}"
   chef-server-org-full-name = "${var.chef-server-org-full-name}"
+  supermarket-redirect-uri = "https://${module.supermarket-server.public_ip}/auth/chef_oauth2/callback"
 }

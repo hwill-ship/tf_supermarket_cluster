@@ -17,6 +17,16 @@ resource "template_file" "chef_bootstrap" {
   }
 }
 
+resource "template_file" "dna" {
+  template = "${file("${path.module}/templates/dna.tpl")}"
+
+  vars {
+    fqdn = "${aws_instance.chef-server.public_ip}"
+    chef-server-user = "${var.chef-server-user}"
+    redirect_uri = "${var.supermarket-redirect-uri}"
+  }
+}
+
 resource "aws_instance" "chef-server" {
   ami = "${var.ami}"
   instance_type = "${var.instance_type}"
@@ -58,7 +68,8 @@ resource "aws_instance" "chef-server" {
   provisioner "remote-exec" {
     inline = [
       "curl -L https://www.chef.io/chef/install.sh | sudo bash",
-      "sudo chef-solo -o 'recipe[chef-server::default]'",
+      "echo '${template_file.dna.rendered}' > /tmp/dna.json",
+      "sudo chef-solo -o 'recipe[chef-server::default]' -j /tmp/dna.json",
       "echo '${template_file.chef_bootstrap.rendered}' > /tmp/bootstrap-chef-server.sh",
       "chmod +x /tmp/bootstrap-chef-server.sh",
       "sudo sh /tmp/bootstrap-chef-server.sh",

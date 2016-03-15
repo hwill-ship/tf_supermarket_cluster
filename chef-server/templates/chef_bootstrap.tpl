@@ -1,13 +1,5 @@
-# install chef-solo
-curl -L https://www.chef.io/chef/install.sh | sudo bash
-# create required bootstrap dirs/files
-sudo mkdir -p /var/chef/cache /var/chef/cookbooks
-# pull down this chef-server cookbook
-wget -qO- https://supermarket.chef.io/cookbooks/chef-server/download | sudo tar xvzC /var/chef/cookbooks
-# pull down dependency cookbooks
-for dep in chef-ingredient yum-chef yum apt-chef apt packagecloud
-do
-  wget -qO- https://supermarket.chef.io/cookbooks/${dep}/download | sudo tar xvzC /var/chef/cookbooks
-done
-# GO GO GO!!!
-sudo chef-solo -o 'recipe[chef-server::default]'
+sudo chef-server-ctl user-create ${chef-server-user} ${chef-server-user-full-name} ${chef-server-user-email} ${chef-server-user-password} -f ~/${chef-server-user}.pem
+sudo chef-server-ctl org-create ${chef-server-org-name} ${chef-server-org-full-name} -f ~/${chef-server-org-name}.pem -a ${chef-server-user}
+echo "oc_id['administrators'] = ['${chef-server-user}']" >> /etc/opscode/chef-server.rb
+sudo chef-server-ctl reconfigure
+

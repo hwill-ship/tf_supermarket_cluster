@@ -32,4 +32,10 @@ module "chef-server" {
   security_groups = "${module.security-groups.allow-ssh-name},${module.security-groups.allow-443-name}"
   key_name = "${var.key_name}"
   private_ssh_key_path = "${var.private_ssh_key_path}"
+  chef-server-user = "${var.chef-server-user}"
+  chef-server-user-full-name = "${var.chef-server-user-full-name}"
+  chef-server-user-email = "${var.chef-server-user-email}"
+  chef-server-user-password = "${var.chef-server-user-password}"
+  chef-server-org-name = "${var.chef-server-org-name}"
+  chef-server-org-full-name = "${var.chef-server-org-full-name}"
 }

@@ -46,4 +46,5 @@ module "workstation" {
   chef-server-user = "${var.chef-server-user}"
   chef-server-fqdn = "${module.chef-server.public_ip}"
   chef-server-organization = "${var.chef-server-org-name}"
+  private_ssh_key_path = "${var.private_ssh_key_path}"
 }

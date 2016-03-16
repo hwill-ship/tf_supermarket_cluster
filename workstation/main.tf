@@ -9,6 +9,12 @@ resource "template_file" "knife_rb" {
   provisioner "local-exec" {
     command = "mkdir -p .chef && echo '${template_file.knife_rb.rendered}' > .chef/knife.rb"
   }
+
+  # Download chef validation pem
+  provisioner "local-exec" {
+    command = "scp -oStrictHostKeyChecking=no -i ${var.private_ssh_key_path} ubuntu@${chef-server-fqdn}:${var.chef-server-user}.pem .chef/${var.chef-server-user}.pem"
+  }
+
   # Fetch Chef Server Certificate
   provisioner "local-exec" {
     command = "knife ssl fetch"

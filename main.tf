@@ -40,3 +40,10 @@ module "chef-server" {
   chef-server-org-full-name = "${var.chef-server-org-full-name}"
   supermarket-redirect-uri = "https://${module.supermarket-server.public_ip}/auth/chef_oauth2/callback"
 }
+
+module "workstation" {
+  source = "./workstation"
+  chef-server-user = "${var.chef-server-user}"
+  chef-server-fqdn = "${module.chef-server.public_ip}"
+  chef-server-organization = "${var.chef-server-org-name}"
+}

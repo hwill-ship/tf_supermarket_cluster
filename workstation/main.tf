@@ -18,6 +18,6 @@ resource "template_file" "knife_rb" {
   # Fetch Chef Server Certificate
   provisioner "local-exec" {
     # changing to the parent directory so the trusted cert goes into ../.chef/trusted_certs
-    command = "cd .. && knife ssl fetch"
+    command = "knife ssl fetch"
   }
 }

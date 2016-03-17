@@ -35,7 +35,11 @@ resource "null_resource" "supermarket-databag-setup" {
 
   # Create the apps data bag on the Chef server
   provisioner "local-exec" {
-    command = "knife data bag create apps"
+  # Sleep 60 is a hack so that this module will not run until the workstation module is complete
+  # Currently terraform will not allow you to use depends_on with a module
+  # https://github.com/hashicorp/terraform/issues/1178
+
+    command = "sleep 60 && knife data bag create apps"
   }
 
   # Create supermarket data bag item on the Chef server

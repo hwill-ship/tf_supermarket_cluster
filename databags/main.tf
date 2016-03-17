@@ -13,18 +13,16 @@ resource "chef_data_bag" "apps" {
 }
 */
 
-resource "template_file" "supermarket-databag" {
-  template = "${file("${path.module}/templates/supermarket_databag.tpl")}"
-
+resource "null_resource" "supermarket-oc-id-info" {
    # Changes ownership of /etc/opscode/oc-id-applications/supermarket.json on the Chef Server
   # So it can be pulled down to the local workstation using the ubuntu user
   provisioner "local-exec" {
-    command = "ssh ubuntu@${var.chef-server-fqdn} 'sudo chown ubuntu /etc/opscode/oc-id-applications/supermarket.json'"
+    command = "ssh -i ${var.private_ssh_key_path} ubuntu@${var.chef-server-fqdn} 'sudo chown ubuntu /etc/opscode/oc-id-applications/supermarket.json'"
   }
 
   # Pulls down supermarket oc-id config from the Chef server 
   provisioner "local-exec" {
-    command = "scp ubuntu@${var.chef-server-fqdn}:/etc/opscode/oc-id-applications/supermarket.json ."
+    command = "scp -i ${var.private_ssh_key_path} ubuntu@${var.chef-server-fqdn}:/etc/opscode/oc-id-applications/supermarket.json ."
   } 
 
   # Extract uid from supermarket oc-id config 
@@ -36,13 +34,6 @@ resource "template_file" "supermarket-databag" {
   provisioner "local-exec" {
     command = "grep -Po '\"secret\".*?[^\\\\]\"(?=,)' supermarket.json > secret.txt"
   }
-
-  vars {
-    fqdn = "${var.supermarket-fqdn}"
-    chef-server-fqdn = "${var.chef-server-fqdn}"
-    supermarket-app-id = "${file("uid.txt")}"
-    supermarket-app-secret = "${file("secret.txt")}"
-  }
 }
 
 resource "null_resource" "supermarket-databag-setup" {
@@ -52,8 +43,21 @@ resource "null_resource" "supermarket-databag-setup" {
   }
 
   # Make json file for supermarket data bag item
+  # Using a heredoc, rather than a template
+  # Because I could not pass the values of oc-id.txt and secret.txt
+  # to the template because they are dynamically created when the terraform
+  # config runs
   provisioner "local-exec" {
-    command = "echo '${template_file.supermarket-databag.rendered}' > databags/apps/supermarket.json"
+    command = <<EOF
+    cat <<FILE > databags/apps/supermarket.json
+{
+  "id": "supermarket",
+  "fqdn": "${var.supermarket-fqdn}",
+  "chef_server_url": "https://${var.chef-server-fqdn}"
+}
+FILE
+EOF
+
   }
 
   # Create the apps data bag on the Chef server

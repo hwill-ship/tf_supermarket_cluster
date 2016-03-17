@@ -57,3 +57,9 @@ module "databags" {
   chef-private-key-path = ".chef/${var.chef-server-user}.pem"
   supermarket-fqdn = "${module.supermarket-server.public_ip}"
 }
+
+module "nodes" {
+  source = "./nodes"
+  supermarket-server-public-ip = "${module.supermarket-server.public_ip}"
+  private_ssh_key_path = "${var.private_ssh_key_path}"
+}

@@ -16,9 +16,32 @@ resource "chef_data_bag" "apps" {
 resource "template_file" "supermarket-databag" {
   template = "${file("${path.module}/templates/supermarket_databag.tpl")}"
 
+   # Changes ownership of /etc/opscode/oc-id-applications/supermarket.json on the Chef Server
+  # So it can be pulled down to the local workstation using the ubuntu user
+  provisioner "local-exec" {
+    command = "ssh ubuntu@${var.chef-server-fqdn} 'sudo chown ubuntu /etc/opscode/oc-id-applications/supermarket.json'"
+  }
+
+  # Pulls down supermarket oc-id config from the Chef server 
+  provisioner "local-exec" {
+    command = "scp ubuntu@${var.chef-server-fqdn}:/etc/opscode/oc-id-applications/supermarket.json ."
+  } 
+
+  # Extract uid from supermarket oc-id config 
+  provisioner "local-exec" {
+    command = "grep -Po '\"uid\".*?[^\\\\]\",' supermarket.json > uid.txt"
+  }
+
+  # Extract secret from supermarket oc-id config
+  provisioner "local-exec" {
+    command = "grep -Po '\"secret\".*?[^\\\\]\"(?=,)' supermarket.json > secret.txt"
+  }
+
   vars {
     fqdn = "${var.supermarket-fqdn}"
     chef-server-fqdn = "${var.chef-server-fqdn}"
+    supermarket-app-id = "${file("uid.txt")}"
+    supermarket-app-secret = "${file("secret.txt")}"
   }
 }
 

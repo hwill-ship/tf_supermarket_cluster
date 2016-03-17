@@ -7,12 +7,12 @@ resource "template_file" "knife_rb" {
   }
   # Make .chef/knife.rb file
   provisioner "local-exec" {
-    command = "mkdir -p ../.chef && echo '${template_file.knife_rb.rendered}' > ../.chef/knife.rb"
+    command = "mkdir -p .chef && echo '${template_file.knife_rb.rendered}' > .chef/knife.rb"
   }
 
   # Download chef validation pem
   provisioner "local-exec" {
-    command = "scp -oStrictHostKeyChecking=no -i ${var.private_ssh_key_path} ubuntu@${var.chef-server-fqdn}:${var.chef-server-user}.pem ../.chef"
+    command = "scp -oStrictHostKeyChecking=no -i ${var.private_ssh_key_path} ubuntu@${var.chef-server-fqdn}:${var.chef-server-user}.pem .chef"
   }
 
   # Fetch Chef Server Certificate

@@ -48,3 +48,12 @@ module "workstation" {
   chef-server-organization = "${var.chef-server-org-name}"
   private_ssh_key_path = "${var.private_ssh_key_path}"
 }
+
+module "databags" {
+  source = "./databags"
+  chef-server-fqdn = "${module.chef-server.public_ip}"
+  chef-server-organization = "${var.chef-server-org-name}"
+  chef-server-user = "${var.chef-server-user}"
+  chef-private-key-path = ".chef/${var.chef-server-user}.pem"
+  supermarket-fqdn = "${module.supermarket-server.public_ip}"
+}

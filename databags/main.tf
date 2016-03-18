@@ -16,8 +16,9 @@ resource "chef_data_bag" "apps" {
 resource "null_resource" "supermarket-oc-id-info" {
    # Changes ownership of /etc/opscode/oc-id-applications/supermarket.json on the Chef Server
   # So it can be pulled down to the local workstation using the ubuntu user
+  # Force sleep for 60 seconds so other modules have a chance to finish
   provisioner "local-exec" {
-    command = "ssh -i ${var.private_ssh_key_path} ubuntu@${var.chef-server-fqdn} 'sudo chown ubuntu /etc/opscode/oc-id-applications/supermarket.json'"
+    command = "sleep 60 && ssh -i ${var.private_ssh_key_path} ubuntu@${var.chef-server-fqdn} 'sudo chown ubuntu /etc/opscode/oc-id-applications/supermarket.json'"
   }
 
   # Pulls down supermarket oc-id config from the Chef server 
@@ -53,11 +54,12 @@ resource "null_resource" "supermarket-databag-setup" {
 {
   "id": "supermarket",
   "fqdn": "${var.supermarket-fqdn}",
-  "chef_server_url": "https://${var.chef-server-fqdn}"
+  "chef_server_url": "https://${var.chef-server-fqdn}",
+  ${file("uid.txt")}
+  ${file("secret.txt")} 
 }
 FILE
 EOF
-
   }
 
   # Create the apps data bag on the Chef server
@@ -66,7 +68,7 @@ EOF
   # Currently terraform will not allow you to use depends_on with a module
   # https://github.com/hashicorp/terraform/issues/1178
 
-    command = "sleep 60 && knife data bag create apps"
+    command = "sleep 120 && knife data bag create apps"
   }
 
   # Create supermarket data bag item on the Chef server

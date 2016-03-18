@@ -20,4 +20,9 @@ resource "template_file" "knife_rb" {
     # changing to the parent directory so the trusted cert goes into ../.chef/trusted_certs
     command = "knife ssl fetch"
   }
+
+# Upload cookbooks to the Chef Server
+  provisioner "local-exec" {
+    command = "knife cookbook upload --all --cookbook-path chef-server/cookbooks"
+  }
 }

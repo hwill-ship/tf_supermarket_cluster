@@ -7,7 +7,21 @@ This currently only works with AWS.
 ## Requirements
 You must have Git, ChefDK, and Terraform installed on your local workstation.
 
-You must have an AWS account including a AWS Access Key and Secret Key
+You must have an AWS account including an AWS Access Key, AWS Secret Key, and AWS IAM user
+
+## What this does
+
+This Terraform config will:
+
+1. Spin up a Supermarket server in AWS
+2. Spin up a Chef Server in AWS, then register the Supermarket with the Chef Server so Supermarket can use oc_id for auth
+3. Make some changes to your workstation - including setting up a .chef/knife.rb file with the new Chef Server and Supermarket information
+4. Upload a databag with information for Supermarket to use when it is configured 
+5. Spin up a new RDS instance and connect it to your Supermarket
+6. Spin up a new Elasticache instance and connect it to your Supermarket
+7. Spin up a new S3 bucket for artifact storage and connect it to your Supermarket
+
+This is a high level overview, please see the actual config files for more detail about what is executed when.
 
 ## Usage
 

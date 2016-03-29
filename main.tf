@@ -108,6 +108,8 @@ resource "null_resource" "supermarket-oc-id-info" {
 }
 
 resource "null_resource" "supermarket-databag-setup" {
+  depends_on = ["null_resource.supermarket-oc-id-info"]
+
   # Make a data bags directory
   provisioner "local-exec" {
     command = "mkdir -p databags/apps"
@@ -131,14 +133,16 @@ resource "null_resource" "supermarket-databag-setup" {
 FILE
 EOF
   }
+}
 
+resource "null_resource" "supermarket-databag-upload" {
+  depends_on = ["null_resource.supermarket-databag-setup"]
   # Create the apps data bag on the Chef server
   provisioner "local-exec" {
   # Sleep 60 is a hack so that this module will not run until the workstation module is complete
   # Currently terraform will not allow you to use depends_on with a module
   # https://github.com/hashicorp/terraform/issues/1178
-
-    command = "sleep 120 && knife data bag create apps"
+    command = "knife data bag create apps"
   }
 
   # Create supermarket data bag item on the Chef server
@@ -148,11 +152,9 @@ EOF
 }
 
 resource "null_resource" "supermarket-node-setup" {
-  depends_on = ["null_resource.supermarket-databag-setup"]
-  # Forces 360 second wait to allow other modules to finish before this one
-  # Terraform does not currently let you use depends_on with a module
+  depends_on = ["null_resource.supermarket-databag-upload"]
   provisioner "local-exec" {
-    command = "sleep 360 && knife bootstrap ${module.supermarket-server.public_ip} -i ${var.private_ssh_key_path} -N supermarket-node -x ubuntu --sudo"
+    command = "knife bootstrap ${module.supermarket-server.public_ip} -i ${var.private_ssh_key_path} -N supermarket-node -x ubuntu --sudo"
   }
 }
 

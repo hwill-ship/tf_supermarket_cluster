@@ -31,6 +31,12 @@ Now copy the terraform.tfvars.example to a new file called terraform.tfvars
 
 Now open up then new file with your preferred text editor and fill in the appropriate values (i.e. AWS Access Key, AWS Key Pair, etc.)
 
+Next, get the modules included in this repo:
+
+```bash
+  $ terraform get
+```
+
 Check that your Terraform config looks good
 
 ```bash

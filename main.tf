@@ -11,15 +11,39 @@ module "security-groups" {
   region = "${var.region}"
 }
 
-module "supermarket-server" {
-  source = "./supermarket-server"
+module "supermarket" {
+  source = "./supermarket"
+  aws_iam_username = "${var.aws_iam_username}"
+
   access_key = "${var.access_key}"
   secret_key = "${var.secret_key}"
   region = "${var.region}"
   instance_type = "${var.instance_type}"
   ami = "${var.ami}"
-  security_groups = "${module.security-groups.allow-ssh-name},${module.security-groups.allow-443-name}"
+
+  # Must be assigned to the default security group to be able to connect to other instances (i.e. the RDS DB) on the same VPC
+  security_groups = "${module.security-groups.allow-ssh-name},${module.security-groups.allow-443-name},default"
+
   key_name = "${var.key_name}"
+
+  db_allocated_storage = "${var.db_allocated_storage}"
+  db_engine = "${var.db_engine}"
+  db_engine_version = "${var.db_engine_version}"
+  db_instance_class = "${var.db_instance_class}"
+  db_identifier = "${var.db_identifier}"
+  db_name = "${var.db_name}"
+  db_username = "${var.db_username}"
+  db_password = "${var.db_password}"  
+
+  bucket_name = "${var.bucket_name}"
+  bucket_acl = "${var.bucket_acl}"
+
+  cache_cluster_name = "${var.cache_cluster_name}"
+  cache_cluster_engine = "${var.cache_cluster_engine}"
+  cache_cluster_node_type = "${var.cache_cluster_node_type}"
+  cache_cluster_port = "${var.cache_cluster_port}"
+  cache_cluster_num_nodes = "${var.cache_cluster_num_nodes}"
+  cache_parameter_group_name = "${var.cache_parameter_group_name}"
 }
 
 module "chef-server" {
@@ -29,7 +53,10 @@ module "chef-server" {
   region = "${var.region}"
   instance_type = "${var.instance_type}"
   ami = "${var.ami}"
-  security_groups = "${module.security-groups.allow-ssh-name},${module.security-groups.allow-443-name}"
+
+  # Must be assigned to the default security group to be able to connect to other instances (i.e. the RDS DB) on the same VPC
+  security_groups = "${module.security-groups.allow-ssh-name},${module.security-groups.allow-443-name},default"
+
   key_name = "${var.key_name}"
   private_ssh_key_path = "${var.private_ssh_key_path}"
   chef-server-user = "${var.chef-server-user}"
@@ -38,7 +65,7 @@ module "chef-server" {
   chef-server-user-password = "${var.chef-server-user-password}"
   chef-server-org-name = "${var.chef-server-org-name}"
   chef-server-org-full-name = "${var.chef-server-org-full-name}"
-  supermarket-redirect-uri = "https://${module.supermarket-server.public_ip}/auth/chef_oauth2/callback"
+  supermarket-redirect-uri = "https://${module.supermarket.public_ip}/auth/chef_oauth2/callback"
 }
 
 module "workstation" {
@@ -47,6 +74,7 @@ module "workstation" {
   chef-server-fqdn = "${module.chef-server.public_ip}"
   chef-server-organization = "${var.chef-server-org-name}"
   private_ssh_key_path = "${var.private_ssh_key_path}"
+  supermarket-server-fqdn = "${module.supermarket.public_ip}"
 }
 
 # Configure the Chef provider
@@ -84,7 +112,7 @@ resource "null_resource" "supermarket-oc-id-info" {
 
   # Extract secret from supermarket oc-id config
   provisioner "local-exec" {
-    command = "grep -Po '\"secret\".*?[^\\\\]\"(?=,)' supermarket.json > secret.txt"
+    command = "grep -Po '\"secret\".*?[^\\\\]\",' supermarket.json > secret.txt"
   }
 }
 
@@ -106,10 +134,25 @@ resource "null_resource" "supermarket-databag-setup" {
     cat <<FILE > databags/apps/supermarket.json
 {
   "id": "supermarket",
-  "fqdn": "${module.supermarket-server.public_ip}",
+  "fqdn": "${module.supermarket.public_ip}",
   "chef_server_url": "https://${module.chef-server.public_ip}",
   ${file("uid.txt")}
-  ${file("secret.txt")} 
+  ${file("secret.txt")}
+  "internal_database_enable": false,
+  "database": {
+    "host": "${replace(module.supermarket.database_host, "/:\d\d\d\d/","")}",
+    "name": "${var.db_name}",
+    "password": "${var.db_password}",
+    "port": "${module.supermarket.database_port}",
+    "username": "${var.db_username}"
+  },
+  "redis": {
+    "enable": false
+  },
+  "redis_url": "redis://${module.supermarket.elasticache_url}" ,
+  "s3_bucket": "${var.bucket_name}",
+  "s3_access_key_id": "${var.access_key}",
+  "s3_secret_access_key": "${var.secret_key}"
 }
 FILE
 EOF
@@ -120,9 +163,6 @@ resource "null_resource" "supermarket-databag-upload" {
   depends_on = ["null_resource.supermarket-databag-setup"]
   # Create the apps data bag on the Chef server
   provisioner "local-exec" {
-  # Sleep 60 is a hack so that this module will not run until the workstation module is complete
-  # Currently terraform will not allow you to use depends_on with a module
-  # https://github.com/hashicorp/terraform/issues/1178
     command = "knife data bag create apps"
   }
 
@@ -135,7 +175,7 @@ resource "null_resource" "supermarket-databag-upload" {
 resource "null_resource" "supermarket-node-setup" {
   depends_on = ["null_resource.supermarket-databag-upload"]
   provisioner "local-exec" {
-    command = "knife bootstrap ${module.supermarket-server.public_ip} -i ${var.private_ssh_key_path} -N supermarket-node -x ubuntu --sudo"
+    command = "knife bootstrap ${module.supermarket.public_ip} -i ${var.private_ssh_key_path} -N supermarket-node -x ubuntu --sudo"
   }
 }
 
@@ -149,6 +189,15 @@ resource "null_resource" "configure-supermarket-node-run-list" {
 resource "null_resource" "supermarket-node-client" {
   depends_on = ["null_resource.configure-supermarket-node-run-list"]
   provisioner "local-exec" {
-    command = "ssh -i ${var.private_ssh_key_path} ubuntu@${module.supermarket-server.public_ip} 'sudo chef-client'"
+    command = "ssh -i ${var.private_ssh_key_path} ubuntu@${module.supermarket.public_ip} 'sudo chef-client'"
+  }
+}
+
+# Putting this at the very end to allow time for Supermarket node config to complete
+resource "null_resource" "fetch-supermarket-certificate" {
+  depends_on = ["null_resource.configure-supermarket-node-run-list"]
+  # Fetch Supermarket Certificate
+  provisioner "local-exec" {
+    command = "sleep 180 && knife ssl fetch https://${module.supermarket.public_ip}"
   }
 }

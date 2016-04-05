@@ -4,6 +4,7 @@ resource "template_file" "knife_rb" {
     chef-server-user = "${var.chef-server-user}"
     chef-server-fqdn = "${var.chef-server-fqdn}"
     organization = "${var.chef-server-organization}"
+    supermarket-server-fqdn = "${var.supermarket-server-fqdn}"
   }
   # Make .chef/knife.rb file
   provisioner "local-exec" {
@@ -21,8 +22,13 @@ resource "template_file" "knife_rb" {
     command = "knife ssl fetch"
   }
 
-# Upload cookbooks to the Chef Server
+  # Upload cookbooks to the Chef Server
   provisioner "local-exec" {
     command = "knife cookbook upload --all --cookbook-path chef-server/cookbooks"
+  }
+
+  # Install knife-supermarket
+  provisioner "local-exec" {
+    command = "sudo chef gem install knife-supermarket"
   }
 }

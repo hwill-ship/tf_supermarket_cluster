@@ -1,8 +1,11 @@
+aws_iam_username = "Username of your AWS IAM user"
+
 access_key = "Your AWS Access Key"
 secret_key = "Your AWS Secret Key"
-region = "us-west-2"
-instance_type = "t2.medium"
-ami = "ami-9abea4fb"
+region = "Your preferred AWS region"
+instance_type = "You preferred AWS instance type"
+ami = "Your preferred AWS AMI id"
+
 private_ssh_key_path = "Path to your AWS private key (part of your AWS key pair)"
 key_name = "Name of your AWS KEY PAIR"
 chef-server-user = "username for your chef server user"
@@ -11,3 +14,23 @@ chef-server-user-email = "Email address to associate with your Chef Server User"
 chef-server-user-password = "Password for your Chef User Account"
 chef-server-org-name = "Name for your organization on the Chef Server"
 chef-server-org-full-name = "Full Name for your organization on the Chef Server"
+
+db_allocated_storage = "Your preferred amount of storage on your DB in gigabytes"
+db_engine = "postgres"
+db_engine_version = "Your preferred postgres version (i.e. 9.4.5)"
+db_instance_class = "Your preferred db instance class (i.e. db.t2.small)"
+db_identifier = "supermarket"
+db_name = "supermarket"
+db_username = "supermarket"
+db_password = "Your preferred db password"  
+
+bucket_name = "Your preferred bucket name"
+bucket_acl = "private"
+
+cache_cluster_name = "Your preferred cluster name (i.e. supermarket-cluster)"
+cache_cluster_engine = "redis"
+cache_cluster_node_type = "Your preferred cache cluster node type (i.e. cache.t2.medium)"
+cache_cluster_port = "Your preferred port number (i.e. 6379)"
+cache_cluster_num_nodes = "Your prferred number of nodes in your cluster"
+
+cache_parameter_group_name = "Your preferred cache paramater group (i.e. default.redis2.8)" 

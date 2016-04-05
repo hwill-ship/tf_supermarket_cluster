@@ -134,7 +134,7 @@ resource "null_resource" "supermarket-databag-setup" {
     cat <<FILE > databags/apps/supermarket.json
 {
   "id": "supermarket",
-  "fqdn": "${module.supermarket-server.public_ip}",
+  "fqdn": "${module.supermarket.public_ip}",
   "chef_server_url": "https://${module.chef-server.public_ip}",
   ${file("uid.txt")}
   ${file("secret.txt")}
@@ -175,7 +175,7 @@ resource "null_resource" "supermarket-databag-upload" {
 resource "null_resource" "supermarket-node-setup" {
   depends_on = ["null_resource.supermarket-databag-upload"]
   provisioner "local-exec" {
-    command = "knife bootstrap ${module.supermarket-server.public_ip} -i ${var.private_ssh_key_path} -N supermarket-node -x ubuntu --sudo"
+    command = "knife bootstrap ${module.supermarket.public_ip} -i ${var.private_ssh_key_path} -N supermarket-node -x ubuntu --sudo"
   }
 }
 
@@ -189,7 +189,7 @@ resource "null_resource" "configure-supermarket-node-run-list" {
 resource "null_resource" "supermarket-node-client" {
   depends_on = ["null_resource.configure-supermarket-node-run-list"]
   provisioner "local-exec" {
-    command = "ssh -i ${var.private_ssh_key_path} ubuntu@${module.supermarket-server.public_ip} 'sudo chef-client'"
+    command = "ssh -i ${var.private_ssh_key_path} ubuntu@${module.supermarket.public_ip} 'sudo chef-client'"
   }
 }
 

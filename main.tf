@@ -22,6 +22,21 @@ module "supermarket-server" {
   key_name = "${var.key_name}"
 }
 
+module "fieri" {
+  source = "./fieri"
+
+  access_key = "${var.access_key}"
+  secret_key = "${var.secret_key}"
+  region = "${var.region}"
+  instance_type = "${var.instance_type}"
+  ami = "${var.ami}"
+
+  # Must be assigned to the default security group to be able to connect to other instances (i.e. the RDS DB) on the same VPC
+  security_groups = "${module.security-groups.allow-ssh-name},${module.security-groups.allow-443-name},default"
+
+  key_name = "${var.key_name}"
+}
+
 module "chef-server" {
   source = "./chef-server" 
   access_key = "${var.access_key}"
@@ -62,6 +77,12 @@ provider "chef" {
 resource "chef_data_bag" "apps" {
     name = "supermarket"
 }
+*/
+
+/*
+==============================================================================
+This section sets up the Supermarket Databag and configures the Supermarket node
+==============================================================================
 */
 
 resource "null_resource" "supermarket-oc-id-info" {
@@ -109,7 +130,25 @@ resource "null_resource" "supermarket-databag-setup" {
   "fqdn": "${module.supermarket-server.public_ip}",
   "chef_server_url": "https://${module.chef-server.public_ip}",
   ${file("uid.txt")}
-  ${file("secret.txt")} 
+  ${file("secret.txt")}
+  "internal_database_enable": false,
+  "database": {
+    "host": "${replace(module.supermarket.database_host, "/:\d\d\d\d/","")}",
+    "name": "${var.db_name}",
+    "password": "${var.db_password}",
+    "port": "${module.supermarket.database_port}",
+    "username": "${var.db_username}"
+  },
+  "redis": {
+    "enable": false
+  },
+  "redis_url": "redis://${module.supermarket.elasticache_url}" ,
+  "s3_bucket": "${var.bucket_name}",
+  "s3_access_key_id": "${var.access_key}",
+  "s3_secret_access_key": "${var.secret_key}",
+  "fieri_url": "${module.fieri.public_ip}",
+  "fieri_key": "${var.fieri_key}",
+  "features": "tools,fieri,github,announcement"
 }
 FILE
 EOF
@@ -151,4 +190,22 @@ resource "null_resource" "supermarket-node-client" {
   provisioner "local-exec" {
     command = "ssh -i ${var.private_ssh_key_path} ubuntu@${module.supermarket-server.public_ip} 'sudo chef-client'"
   }
+}
+
+/*
+==============================================================================
+This section sets up the Fieri data bag and configures the Fieri node
+==============================================================================
+*/
+
+resource "null_resource" "fieri-databag-setup" {
+  # Make json file for fieri data bag item 
+  
+  provisioner "local-exec" {
+    command = <<EOF
+    cat <<FILE > databags/apps/fieri.json
+{
+  "id": "fieri",
+  "
+}
 }

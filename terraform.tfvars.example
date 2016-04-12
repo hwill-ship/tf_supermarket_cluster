@@ -2,7 +2,7 @@ aws_iam_username = "Username of your AWS IAM user"
 
 access_key = "Your AWS Access Key"
 secret_key = "Your AWS Secret Key"
-region = "Your preferred AWS region"
+region = "Your preferred AWS region"  (NOTE: This MUST be us-east-1 until this issue is resolved https://github.com/chef/supermarket/issues/1266)
 instance_type = "You preferred AWS instance type"
 ami = "Your preferred AWS AMI id"
 
@@ -34,3 +34,5 @@ cache_cluster_port = "Your preferred port number (i.e. 6379)"
 cache_cluster_num_nodes = "Your prferred number of nodes in your cluster"
 
 cache_parameter_group_name = "Your preferred cache paramater group (i.e. default.redis2.8)" 
+
+fieri_key = "Random generated string"

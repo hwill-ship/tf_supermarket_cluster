@@ -33,3 +33,5 @@ variable "cache_cluster_node_type" {}
 variable "cache_cluster_port" {}
 variable "cache_cluster_num_nodes" {}
 variable "cache_parameter_group_name" {}
+
+variable "fieri_key" {}

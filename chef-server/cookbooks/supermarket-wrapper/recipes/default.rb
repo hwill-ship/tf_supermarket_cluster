@@ -21,6 +21,8 @@ node.set['supermarket_omnibus']['config']['log_level'] = 'DEBUG'
 node.set['supermarket_omnibus']['config']['s3_bucket'] = app['s3_bucket']
 node.set['supermarket_omnibus']['config']['s3_access_key_id'] = app['s3_access_key_id']
 node.set['supermarket_omnibus']['config']['s3_secret_access_key'] = app['s3_secret_access_key']
+node.set['supermarket_omnibus']['config']['s3_urls_expire'] = app['s3_urls_expire']
+
 
 node.set['supermarket_omnibus']['config']['redis']['enable'] = app['redis']['enable']
 node.set['supermarket_omnibus']['config']['redis_url'] = app['redis_url']

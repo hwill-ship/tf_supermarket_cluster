@@ -28,11 +28,7 @@ resource "aws_db_instance" "supermarket-db" {
 resource "aws_s3_bucket" "supermarket-bucket" {
   bucket = "${var.bucket_name}"
   acl = "${var.bucket_acl}"
-
-  # Supermarket looks for S3 buckets with this style of URL https://s3.amazonaws.com/bucket_name
-  # This style of url is only available when a bucket is in the us-east-1 region of S3
-  # Something we should revisit in Supermarket
-  region = "us-east-1"
+  region = "${var.region}"
   policy = <<POLICY
 {
 "Id": "Policy1459815636248",

@@ -14,6 +14,7 @@ resource "aws_instance" "supermarket-server" {
   key_name = "${var.key_name}"
 }
 
+/*
 resource "aws_db_instance" "supermarket-db" {
   allocated_storage = "${var.db_allocated_storage}"
   engine = "${var.db_engine}"
@@ -22,7 +23,7 @@ resource "aws_db_instance" "supermarket-db" {
   identifier = "${var.db_identifier}"
   name = "${var.db_name}"
   username = "${var.db_username}"
-  password = "${var.db_password}"  
+  password = "${var.db_password}"
 }
 
 resource "aws_s3_bucket" "supermarket-bucket" {
@@ -58,3 +59,4 @@ resource "aws_elasticache_cluster" "supermarket_cluster" {
   num_cache_nodes = "${var.cache_cluster_num_nodes}"
   parameter_group_name = "${var.cache_parameter_group_name}"
 }
+*/

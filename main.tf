@@ -33,7 +33,7 @@ module "supermarket" {
   db_identifier = "${var.db_identifier}"
   db_name = "${var.db_name}"
   db_username = "${var.db_username}"
-  db_password = "${var.db_password}"  
+  db_password = "${var.db_password}"
 
   bucket_name = "${var.bucket_name}"
   bucket_acl = "${var.bucket_acl}"
@@ -46,6 +46,7 @@ module "supermarket" {
   cache_parameter_group_name = "${var.cache_parameter_group_name}"
 }
 
+/*
 module "fieri" {
   source = "./fieri"
 
@@ -60,9 +61,10 @@ module "fieri" {
 
   key_name = "${var.key_name}"
 }
+*/
 
 module "chef-server" {
-  source = "./chef-server" 
+  source = "./chef-server"
   access_key = "${var.access_key}"
   secret_key = "${var.secret_key}"
   region = "${var.region}"
@@ -113,32 +115,20 @@ This section sets up the Supermarket databag and configures the Supermarket node
 ==============================================================================
 */
 
-resource "null_resource" "supermarket-oc-id-info" {
-   # Changes ownership of /etc/opscode/oc-id-applications/supermarket.json on the Chef Server
-  # So it can be pulled down to the local workstation using the ubuntu user
-  # Force sleep for 60 seconds so other modules have a chance to finish
+resource "null_resource" "get-supermarket-oc-id-info" {
+  # Extract uid from supermarket oc-id config
   provisioner "local-exec" {
-    command = "sleep 60 && ssh -i ${var.private_ssh_key_path} ubuntu@${module.chef-server.public_ip} 'sudo chown ubuntu /etc/opscode/oc-id-applications/supermarket.json'"
-  }
-
-  # Pulls down supermarket oc-id config from the Chef server 
-  provisioner "local-exec" {
-    command = "scp -i ${var.private_ssh_key_path} ubuntu@${module.chef-server.public_ip}:/etc/opscode/oc-id-applications/supermarket.json ."
-  } 
-
-  # Extract uid from supermarket oc-id config 
-  provisioner "local-exec" {
-    command = "grep -Po '\"uid\".*?[^\\\\]\",' supermarket.json > uid.txt"
+    command = "ssh -oStrictHostKeyChecking=no -i ${var.private_ssh_key_path} ubuntu@${module.chef-server.public_ip} \"sudo cat /etc/opscode/oc-id-applications/supermarket.json | grep -Ei '\"uid\".*?,'\" > uid.txt"
   }
 
   # Extract secret from supermarket oc-id config
   provisioner "local-exec" {
-    command = "grep -Po '\"secret\".*?[^\\\\]\",' supermarket.json > secret.txt"
+    command = "ssh -oStrictHostKeyChecking=no -i ${var.private_ssh_key_path} ubuntu@${module.chef-server.public_ip} \"sudo cat /etc/opscode/oc-id-applications/supermarket.json | grep -Ei '\"secret\".*?,'\" > secret.txt"
   }
 }
 
 resource "null_resource" "supermarket-databag-setup" {
-  depends_on = ["null_resource.supermarket-oc-id-info"]
+  depends_on = ["null_resource.get-supermarket-oc-id-info"]
 
   # Make a data bags directory
   provisioner "local-exec" {
@@ -155,28 +145,10 @@ resource "null_resource" "supermarket-databag-setup" {
     cat <<FILE > databags/apps/supermarket.json
 {
   "id": "supermarket",
-  "fqdn": "${module.supermarket.public_ip}",
   "chef_server_url": "https://${module.chef-server.public_ip}",
   ${file("uid.txt")}
   ${file("secret.txt")}
-  "internal_database_enable": false,
-  "database": {
-    "host": "${replace(module.supermarket.database_host, "/:\d\d\d\d/","")}",
-    "name": "${var.db_name}",
-    "password": "${var.db_password}",
-    "port": "${module.supermarket.database_port}",
-    "username": "${var.db_username}"
-  },
-  "redis": {
-    "enable": false
-  },
-  "redis_url": "redis://${module.supermarket.elasticache_url}" ,
-  "s3_bucket": "${var.bucket_name}",
-  "s3_access_key_id": "${var.access_key}",
-  "s3_secret_access_key": "${var.secret_key}",
-  "fieri_url": "http://${module.fieri.public_dns}/jobs",
-  "fieri_key": "${var.fieri_key}",
-  "features": "tools,fieri,github,announcement"
+  "fqdn": "${module.supermarket.public_ip}"
 }
 FILE
 EOF
@@ -193,7 +165,7 @@ resource "null_resource" "supermarket-databag-upload" {
   # Create supermarket data bag item on the Chef server
   provisioner "local-exec" {
     command = "knife data bag from file apps databags/apps/supermarket.json"
-  }  
+  }
 }
 
 resource "null_resource" "supermarket-node-setup" {
@@ -251,9 +223,10 @@ EOF
   # Upload json file to create data bag
   provisioner "local-exec" {
     command = "knife data bag from file apps databags/apps/fieri.json"
-  }  
+  }
 }
 
+/*
 resource "null_resource" "fieri-node-setup" {
   # Running into timing issues with bootstrapping the fieri node, so adding in a sleep of 720 to give it more time to become available
   depends_on = ["null_resource.fieri-databag-setup"]
@@ -316,3 +289,4 @@ resource "null_resource" "supermarket-fieri-certificate-setup" {
     command = "ssh -i ${var.private_ssh_key_path} ubuntu@${module.fieri.public_ip} 'sudo update-ca-certificates'"
   }
 }
+*/

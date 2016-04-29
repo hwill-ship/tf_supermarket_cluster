@@ -6,7 +6,7 @@ provider "aws" {
 
 # Create security group for servers in this cluster
 resource "aws_security_group" "allow-ssh" {
-  name = "allow-ssh"
+  name = "allow-ssh-nell"
   tags {
     Name = "Allow All SSH"
   }
@@ -22,7 +22,7 @@ resource "aws_security_group_rule" "allow-ssh" {
 }
 
 resource "aws_security_group" "allow-443" {
-  name = "allow-443"
+  name = "allow-443-nell"
   tags {
     Name = "Allow connections over 443"
   }

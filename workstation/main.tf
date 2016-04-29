@@ -26,9 +26,4 @@ resource "template_file" "knife_rb" {
   provisioner "local-exec" {
     command = "knife cookbook upload --all --cookbook-path chef-server/cookbooks"
   }
-
-  # Install knife-supermarket
-  provisioner "local-exec" {
-    command = "sudo chef gem install knife-supermarket"
-  }
 }

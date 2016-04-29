@@ -14,7 +14,6 @@ resource "aws_instance" "supermarket-server" {
   key_name = "${var.key_name}"
 }
 
-/*
 resource "aws_db_instance" "supermarket-db" {
   allocated_storage = "${var.db_allocated_storage}"
   engine = "${var.db_engine}"
@@ -59,4 +58,3 @@ resource "aws_elasticache_cluster" "supermarket_cluster" {
   num_cache_nodes = "${var.cache_cluster_num_nodes}"
   parameter_group_name = "${var.cache_parameter_group_name}"
 }
-*/

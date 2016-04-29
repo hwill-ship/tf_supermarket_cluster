@@ -46,7 +46,6 @@ module "supermarket" {
   cache_parameter_group_name = "${var.cache_parameter_group_name}"
 }
 
-/*
 module "fieri" {
   source = "./fieri"
 
@@ -61,7 +60,6 @@ module "fieri" {
 
   key_name = "${var.key_name}"
 }
-*/
 
 module "chef-server" {
   source = "./chef-server"
@@ -145,10 +143,28 @@ resource "null_resource" "supermarket-databag-setup" {
     cat <<FILE > databags/apps/supermarket.json
 {
   "id": "supermarket",
+  "fqdn": "${module.supermarket.public_ip}",
   "chef_server_url": "https://${module.chef-server.public_ip}",
   ${file("uid.txt")}
   ${file("secret.txt")}
-  "fqdn": "${module.supermarket.public_ip}"
+  "internal_database_enable": false,
+  "database": {
+    "host": "${replace(module.supermarket.database_host, "/:\d\d\d\d/","")}",
+    "name": "${var.db_name}",
+    "password": "${var.db_password}",
+    "port": "${module.supermarket.database_port}",
+    "username": "${var.db_username}"
+  },
+  "redis": {
+    "enable": false
+  },
+  "redis_url": "redis://${module.supermarket.elasticache_url}" ,
+  "s3_bucket": "${var.bucket_name}",
+  "s3_access_key_id": "${var.access_key}",
+  "s3_secret_access_key": "${var.secret_key}",
+  "fieri_url": "http://${module.fieri.public_dns}/jobs",
+  "fieri_key": "${var.fieri_key}",
+  "features": "tools,fieri,github,announcement"
 }
 FILE
 EOF
@@ -185,7 +201,7 @@ resource "null_resource" "configure-supermarket-node-run-list" {
 resource "null_resource" "supermarket-node-client" {
   depends_on = ["null_resource.configure-supermarket-node-run-list"]
   provisioner "local-exec" {
-    command = "ssh -i ${var.private_ssh_key_path} ubuntu@${module.supermarket.public_ip} 'sudo chef-client'"
+    command = "sleep 220 && ssh -i ${var.private_ssh_key_path} ubuntu@${module.supermarket.public_ip} 'sudo chef-client'"
   }
 }
 
